@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "bedrockjukebox",
+  "version": "${version}",
+  "name": "BedrockJukebox",
+  "description": "Changes the vanilla jukebox to work like in bedrock",
+  "authors": [
+    "FX - PR0CESS"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/bedrockJukebox/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "ca.fxco.bedrockjukebox.BedrockJukebox"
+    ]
+  },
+  "mixins": [
+    "bedrockjukebox.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.8",
+    "minecraft": ">=1.19.1-alpha.22.24.a"
+  }
+}

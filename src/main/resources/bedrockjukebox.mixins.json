@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ca.fxco.bedrockjukebox.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "JukeboxBlock_bedrockMixin",
+    "JukeboxBlockEntity_bedrockMixin",
+    "JukeboxBlockEntityAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -9,7 +9,6 @@
   ],
   "contact": {},
   "license": "MIT",
-  "icon": "assets/bedrockJukebox/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -20,7 +19,7 @@
     "bedrockjukebox.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.14.8",
+    "fabricloader": ">=0.14.6",
     "minecraft": ">=1.19.1-alpha.22.24.a"
   }
 }

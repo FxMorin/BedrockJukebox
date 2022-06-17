@@ -1,6 +1,5 @@
 package ca.fxco.bedrockjukebox.mixin;
 
-import ca.fxco.bedrockjukebox.helpers.ExtendedJukebox;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -27,8 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static net.minecraft.block.JukeboxBlock.HAS_RECORD;
 
 @Mixin(JukeboxBlockEntity.class)
-public abstract class JukeboxBlockEntity_bedrockMixin extends BlockEntity
-        implements Inventory, SidedInventory, ExtendedJukebox {
+public abstract class JukeboxBlockEntity_bedrockMixin extends BlockEntity implements Inventory, SidedInventory {
 
     @Shadow
     private ItemStack record;
@@ -41,24 +39,35 @@ public abstract class JukeboxBlockEntity_bedrockMixin extends BlockEntity
 
     private static final int[] MAIN_SLOT = new int[]{0};
 
-    // No inventory change update in the game yet (That passes world, pos, etc...)
-    // Might in the future use the block entity to do the actions tho, so it mostly contains the right things
-    private boolean needsUpdate = false;
+    private final JukeboxBlockEntity self = (JukeboxBlockEntity)(Object)this;
 
     public JukeboxBlockEntity_bedrockMixin(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 
-    @Override
-    public boolean isPlaying() {
-        return this.field_39484;
-    }
-
-    @Override
-    public boolean update() {
-        boolean needsUpdate = this.needsUpdate;
-        this.needsUpdate = false;
-        return needsUpdate;
+    private static void updateState(JukeboxBlockEntity jukeboxBlockEntity) {
+        World world = jukeboxBlockEntity.getWorld();
+        if (world == null) return;
+        BlockPos pos = jukeboxBlockEntity.getPos();
+        BlockState state = world.getBlockState(pos);
+        if (state.isAir()) return;
+        ItemStack stack = jukeboxBlockEntity.getRecord();
+        if (stack == ItemStack.EMPTY) {
+            if (state.get(HAS_RECORD)) {
+                state = state.with(HAS_RECORD, false);
+                world.setBlockState(pos, state, Block.NOTIFY_ALL);
+                world.emitGameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Emitter.of(state));
+                world.syncWorldEvent(WorldEvents.MUSIC_DISC_PLAYED, pos, 0);
+            }
+        } else {
+            if (!state.get(HAS_RECORD)) {
+                state = state.with(HAS_RECORD, true);
+                world.setBlockState(pos, state, Block.NOTIFY_ALL);
+                world.updateNeighbors(pos,state.getBlock());
+                world.emitGameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Emitter.of(state));
+                world.syncWorldEvent(WorldEvents.MUSIC_DISC_PLAYED, pos, Item.getRawId(stack.getItem()));
+            }
+        }
     }
 
     @Override
@@ -100,9 +109,9 @@ public abstract class JukeboxBlockEntity_bedrockMixin extends BlockEntity
     public ItemStack removeStack(int slot) {
         if (slot == 0) {
             this.field_39484 = false;
-            this.needsUpdate = true;
             ItemStack stack = this.record.copy();
             this.record = ItemStack.EMPTY;
+            updateState(self);
             return stack;
         }
         return ItemStack.EMPTY;
@@ -112,8 +121,8 @@ public abstract class JukeboxBlockEntity_bedrockMixin extends BlockEntity
     public void setStack(int slot, ItemStack stack) {
         if (slot == 0) {
             this.field_39484 = true;
-            this.needsUpdate = true;
             this.setRecord(stack);
+            updateState(self);
         }
     }
 
@@ -126,45 +135,8 @@ public abstract class JukeboxBlockEntity_bedrockMixin extends BlockEntity
     @Override
     public void clear() {
         this.field_39484 = false;
-        this.needsUpdate = true;
         this.setRecord(ItemStack.EMPTY);
-    }
-
-
-    @Inject(
-            method = "method_44370(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;" +
-                    "Lnet/minecraft/block/BlockState;Lnet/minecraft/block/entity/JukeboxBlockEntity;)V",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private static void beforeTick(
-            World world, BlockPos pos, BlockState state, JukeboxBlockEntity jukeboxBlockEntity, CallbackInfo ci
-    ) {
-        if (((ExtendedJukebox)jukeboxBlockEntity).update()) {
-            ((JukeboxBlockEntityAccessor)jukeboxBlockEntity).setRecordStartTick(
-                    ((JukeboxBlockEntityAccessor)jukeboxBlockEntity).getTickCount()
-            );
-            ItemStack stack = jukeboxBlockEntity.getRecord();
-            if (stack == ItemStack.EMPTY) {
-                if (state.get(HAS_RECORD)) {
-                    state = state.with(HAS_RECORD, false);
-                    world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                    world.emitGameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Emitter.of(state));
-                    world.syncWorldEvent(WorldEvents.MUSIC_DISC_PLAYED, pos, 0);
-                }
-            } else {
-                if (!state.get(HAS_RECORD)) {
-                    state = state.with(HAS_RECORD, true);
-                    world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                    world.updateNeighbors(pos,state.getBlock());
-                    world.emitGameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Emitter.of(state));
-                    world.syncWorldEvent(WorldEvents.MUSIC_DISC_PLAYED, pos, Item.getRawId(stack.getItem()));
-                }
-            }
-            ci.cancel();
-        } else if (!state.get(HAS_RECORD)) {
-            ci.cancel();
-        }
+        updateState(self);
     }
 
 

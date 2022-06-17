@@ -6,10 +6,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(JukeboxBlockEntity.class)
 public interface JukeboxBlockEntityAccessor {
-    @Accessor("field_39482")
-    long getTickCount();
-
-    @Accessor("field_39483")
-    void setRecordStartTick(long recordStartTick);
-
+    @Accessor("field_39484")
+    boolean isPlaying();
 }

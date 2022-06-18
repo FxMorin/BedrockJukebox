@@ -37,6 +37,12 @@ public abstract class JukeboxBlockEntity_bedrockMixin extends BlockEntity implem
     @Shadow
     private boolean field_39484;
 
+    @Shadow
+    private long field_39482; // Tick Count
+
+    @Shadow
+    private long field_39483; // Record Tick Count
+
     private static final int[] MAIN_SLOT = new int[]{0};
 
     private final JukeboxBlockEntity self = (JukeboxBlockEntity)(Object)this;
@@ -61,6 +67,7 @@ public abstract class JukeboxBlockEntity_bedrockMixin extends BlockEntity implem
             }
         } else {
             if (!state.get(HAS_RECORD)) {
+                jukeboxBlockEntity.method_44374();
                 state = state.with(HAS_RECORD, true);
                 world.setBlockState(pos, state, Block.NOTIFY_ALL);
                 world.updateNeighbors(pos,state.getBlock());
@@ -82,7 +89,7 @@ public abstract class JukeboxBlockEntity_bedrockMixin extends BlockEntity implem
 
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
-        return dir == Direction.DOWN && !this.field_39484; //not isPlaying
+        return dir == Direction.DOWN && this.field_39482 > this.field_39483+1;
     }
 
     @Override

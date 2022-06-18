@@ -10,3 +10,6 @@ Check out [ilmango's video](https://youtu.be/cP-vWpJS4lo) to better understand t
   
 **Parity:**  
 - Jukeboxes still cause shape updates when changing state (intended)  
+
+**Playing Extraction changes:**  
+In this playing extraction branch, hoppers & hopper minecarts can extract items while the jukebox is playing  

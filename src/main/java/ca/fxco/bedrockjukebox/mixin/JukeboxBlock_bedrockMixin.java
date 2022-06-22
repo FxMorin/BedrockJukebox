@@ -4,11 +4,14 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.JukeboxBlock;
 import net.minecraft.block.entity.*;
+import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
+
+import static net.minecraft.block.JukeboxBlock.HAS_RECORD;
 
 @Mixin(JukeboxBlock.class)
 public abstract class JukeboxBlock_bedrockMixin extends BlockWithEntity {
@@ -28,6 +31,11 @@ public abstract class JukeboxBlock_bedrockMixin extends BlockWithEntity {
         if (blockEntity instanceof JukeboxBlockEntity jbbe && ((JukeboxBlockEntityAccessor)jbbe).isPlaying())
             return 15;
         return 0;
+    }
+
+    @Override
+    public PistonBehavior getPistonBehavior(BlockState state) {
+        return state.get(HAS_RECORD) ? PistonBehavior.BLOCK : PistonBehavior.NORMAL;
     }
 
 
